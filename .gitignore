@@ -2,5 +2,9 @@ node_modules/
 database.sqlite
 sessions/
 public/uploads/
-.env
 .DS_Store
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
+config.bat
