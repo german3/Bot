@@ -1,4 +1,3 @@
-const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 
@@ -12,6 +11,7 @@ const path = require('path');
  */
 async function publishToFacebook(content, imagePath, groups) {
     console.log('🤖 Iniciando automatización de Facebook...');
+    const puppeteer = (await import('puppeteer')).default;
     
     // Configuración para usar un perfil existente de Chrome y no loguearse cada vez
     // En producción se recomienda usar cookies guardadas o un perfil específico
