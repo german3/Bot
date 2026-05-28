@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conectar WhatsApp | AutoPublisher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { primary: '#25D366', dark: '#0f172a', darker: '#020617' }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Script para generar QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="bg-darker text-slate-200 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="glass-panel max-w-md w-full rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-green-500/20 rounded-full blur-2xl"></div>
+        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-green-500/20 rounded-full blur-2xl"></div>
+        
+        <div class="relative z-10">
+            <div class="bg-primary/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fa-brands fa-whatsapp text-4xl text-primary"></i>
+            </div>
+            
+            <h1 class="text-2xl font-bold mb-2">Conecta tu WhatsApp</h1>
+            <p class="text-slate-400 text-sm mb-8">Abre WhatsApp en tu teléfono y escanea este código para vincular el bot publicador.</p>
+
+            <div id="qr-container" class="bg-white p-4 rounded-xl inline-block mx-auto mb-6 shadow-inner min-h-[256px] min-w-[256px] flex items-center justify-center relative">
+                <!-- Aquí se inyectará el QR -->
+                <div class="text-slate-800 flex flex-col items-center">
+                    <i class="fa-solid fa-spinner fa-spin text-3xl mb-2 text-primary"></i>
+                    <p class="text-sm font-medium">Generando QR...</p>
+                </div>
+            </div>
+
+            <div id="status-message" class="text-sm font-medium text-amber-400 bg-amber-400/10 py-2 px-4 rounded-lg border border-amber-400/20 inline-block">
+                <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Esperando conexión...
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-700/50">
+                <a href="/" class="text-sm text-slate-400 hover:text-white transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let qrcodeInstance = null;
+
+        function checkStatus() {
+            fetch('/api/whatsapp/status')
+                .then(res => res.json())
+                .then(data => {
+                    const statusMsg = document.getElementById('status-message');
+                    const qrContainer = document.getElementById('qr-container');
+
+                    if (data.status === 'connected') {
+                        statusMsg.className = 'text-sm font-medium text-green-400 bg-green-400/10 py-2 px-4 rounded-lg border border-green-400/20 inline-block';
+                        statusMsg.innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i> ¡WhatsApp Conectado Exitosamente!';
+                        qrContainer.innerHTML = '<div class="text-green-500 text-6xl"><i class="fa-solid fa-check-circle"></i></div>';
+                        
+                        setTimeout(() => window.location.href = '/', 2000);
+                    } 
+                    else if (data.status === 'qr_ready' && data.qr) {
+                        statusMsg.className = 'text-sm font-medium text-blue-400 bg-blue-400/10 py-2 px-4 rounded-lg border border-blue-400/20 inline-block';
+                        statusMsg.innerHTML = '<i class="fa-solid fa-qrcode mr-2"></i> Escanea el código QR ahora';
+                        
+                        if (!qrcodeInstance) {
+                            qrContainer.innerHTML = ''; // Limpiar el spinner
+                            qrcodeInstance = new QRCode(qrContainer, {
+                                text: data.qr,
+                                width: 256,
+                                height: 256,
+                                colorDark : "#0f172a",
+                                colorLight : "#ffffff",
+                                correctLevel : QRCode.CorrectLevel.L
+                            });
+                        } else {
+                            qrcodeInstance.clear();
+                            qrcodeInstance.makeCode(data.qr);
+                        }
+                    }
+                    else {
+                        statusMsg.className = 'text-sm font-medium text-amber-400 bg-amber-400/10 py-2 px-4 rounded-lg border border-amber-400/20 inline-block';
+                        statusMsg.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Inicializando WhatsApp, por favor espera...';
+                        qrContainer.innerHTML = `
+                            <div class="text-slate-800 flex flex-col items-center">
+                                <i class="fa-solid fa-spinner fa-spin text-3xl mb-2 text-primary"></i>
+                                <p class="text-sm font-medium">Generando QR...</p>
+                            </div>`;
+                        qrcodeInstance = null;
+                    }
+                })
+                .catch(err => console.error("Error fetching status:", err));
+        }
+
+        // Chequear estado cada 3 segundos
+        setInterval(checkStatus, 3000);
+        checkStatus(); // Llamada inicial
+    </script>
+</body>
+</html>

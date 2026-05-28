@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Auto-Publisher | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#4f46e5',
+                        dark: '#0f172a',
+                        darker: '#020617',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-darker text-slate-200 min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="glass-panel sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary p-2 rounded-lg text-white shadow-lg shadow-primary/30">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+                        AutoPublisher Bot
+                    </h1>
+                </div>
+                <nav class="flex gap-4">
+                    <a href="/" class="text-indigo-400 hover:text-indigo-300 font-medium transition"><i class="fa-solid fa-house mr-1"></i> Inicio</a>
+                    <a href="/whatsapp" class="text-slate-400 hover:text-green-400 font-medium transition"><i class="fa-brands fa-whatsapp mr-1"></i> Conectar WhatsApp</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+        
+        <!-- Columna Izquierda: Configuraciones -->
+        <div class="lg:col-span-1 space-y-6">
+            
+            <!-- Tarjeta de Configuración -->
+            <div class="glass-panel rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2"><i class="fa-solid fa-gear text-indigo-400"></i> Configuración General</h2>
+                
+                <form action="/config" method="POST" class="space-y-4 relative z-10">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Número de Teléfono (Contacto)</label>
+                        <input type="text" name="phoneNumber" value="<%= config.phone_number || '' %>" placeholder="+57 300 000 0000" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition placeholder-slate-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Enlaces de Redes (Texto a adjuntar)</label>
+                        <textarea name="socialLinks" rows="3" placeholder="Siguenos en: https://facebook.com/..." class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition placeholder-slate-600 resize-none"><%= config.social_links || '' %></textarea>
+                    </div>
+                    <div class="pt-2 border-t border-slate-700/50">
+                        <label class="block text-sm font-medium text-slate-400 mb-1"><i class="fa-brands fa-telegram text-blue-400"></i> Telegram Bot Token</label>
+                        <input type="text" name="telegramToken" value="<%= config.telegram_token || '' %>" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition text-sm mb-2" placeholder="123456:ABC-DEF...">
+                        
+                        <label class="block text-sm font-medium text-slate-400 mb-1">ID del Chat/Canal de Telegram</label>
+                        <input type="text" name="telegramChatId" value="<%= config.telegram_chat_id || '' %>" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition text-sm" placeholder="@mi_canal o -100123456">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium py-2 rounded-lg transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-indigo-500/25">
+                        Guardar Configuración
+                    </button>
+                </form>
+            </div>
+
+            <!-- Estado del Bot -->
+            <div class="glass-panel rounded-2xl p-6 shadow-xl">
+                <h2 class="text-lg font-semibold mb-4">Estado del Sistema</h2>
+                <div class="space-y-3">
+                    <div class="flex flex-col gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/50">
+                        <div class="flex items-center justify-between">
+                            <span class="flex items-center gap-2 text-sm"><i class="fa-solid fa-clock text-amber-400"></i> Próxima ejecución:</span>
+                            <span class="font-mono text-sm text-slate-300">Mañana, 07:00 AM</span>
+                        </div>
+                        <button onclick="forcePublish(this)" class="w-full mt-2 bg-slate-700 hover:bg-indigo-600 text-white font-medium py-1.5 px-3 rounded text-sm transition flex items-center justify-center gap-2 border border-slate-600 hover:border-indigo-500">
+                            <i class="fa-solid fa-bolt text-yellow-400"></i> Forzar Publicación Ahora
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg border border-slate-700/50">
+                        <span class="flex items-center gap-2 text-sm"><i class="fa-brands fa-whatsapp text-green-400"></i> WhatsApp:</span>
+                        <span class="text-xs font-semibold px-2 py-1 bg-red-500/20 text-red-400 rounded-full border border-red-500/20">Desconectado</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Columna Derecha: Publicaciones -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Crear Publicación -->
+            <div class="glass-panel rounded-2xl p-6 shadow-xl border-t-4 border-indigo-500">
+                <h2 class="text-xl font-semibold mb-4 text-white">Programar Nueva Publicación</h2>
+                <form action="/posts" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Contenido de la Publicación</label>
+                        <textarea name="content" rows="4" required placeholder="Escribe lo que quieres publicar todos los días..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition text-slate-200 placeholder-slate-600 resize-none"></textarea>
+                        <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-circle-info"></i> El número de teléfono y enlaces de la configuración se añadirán automáticamente al final.</p>
+                    </div>
+                    
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Imagen Adjunta (Opcional)</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-700 border-dashed rounded-xl cursor-pointer bg-slate-800/30 hover:bg-slate-800/60 hover:border-indigo-500 transition-colors group">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500 group-hover:text-indigo-400 mb-2 transition-colors"></i>
+                                    <p class="mb-2 text-sm text-slate-400"><span class="font-semibold text-indigo-400">Haz clic para subir</span> o arrastra y suelta</p>
+                                    <p class="text-xs text-slate-500">PNG, JPG o JPEG</p>
+                                </div>
+                                <input id="dropzone-file" type="file" name="image" accept="image/*" class="hidden" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-6 rounded-lg transition transform hover:scale-[1.02] shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-check"></i> Guardar Publicación
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Publicaciones Activas -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4 text-slate-300">Publicaciones Programadas</h3>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <% if (posts && posts.length > 0) { %>
+                        <% posts.forEach(post => { %>
+                            <div class="glass-panel rounded-xl overflow-hidden flex flex-col group transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10 border-l-4 <%= post.is_active ? 'border-green-500' : 'border-slate-600' %>">
+                                <% if (post.image_path) { %>
+                                    <div class="h-40 overflow-hidden bg-slate-900 relative">
+                                        <img src="<%= post.image_path %>" alt="Post Image" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+                                    </div>
+                                <% } %>
+                                <div class="p-4 flex-grow flex flex-col justify-between">
+                                    <p class="text-sm text-slate-300 mb-4 line-clamp-4 leading-relaxed"><%= post.content %></p>
+                                    <div class="flex items-center justify-between pt-3 border-t border-slate-700/50">
+                                        <span class="text-xs font-medium text-slate-500"><i class="fa-solid fa-hashtag"></i> ID: <%= post.id %></span>
+                                        <form action="/posts/delete/<%= post.id %>" method="POST" onsubmit="return confirm('¿Eliminar esta publicación?');">
+                                            <button type="submit" class="text-red-400 hover:text-red-300 hover:bg-red-400/10 px-2 py-1 rounded transition text-xs flex items-center gap-1">
+                                                <i class="fa-solid fa-trash-can"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="col-span-full glass-panel border border-dashed border-slate-600 rounded-xl p-8 text-center">
+                            <div class="bg-slate-800/50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fa-solid fa-ghost text-2xl text-slate-500"></i>
+                            </div>
+                            <p class="text-slate-400">No hay publicaciones programadas. <br>¡Crea una arriba para empezar!</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Script simple para mostrar el nombre del archivo seleccionado
+        document.getElementById('dropzone-file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                const p = this.querySelector('p.text-sm');
+                p.innerHTML = `<span class="text-green-400 font-medium"><i class="fa-solid fa-check mr-1"></i> ${fileName}</span>`;
+            }
+        });
+
+        // Script para forzar la publicación
+        function forcePublish(btn) {
+            if(!confirm('¿Estás seguro de querer publicar en todas las redes ahora mismo?')) return;
+            
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Iniciando...';
+            btn.disabled = true;
+
+            fetch('/api/force-publish', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i> Ejecutándose en 2do plano';
+                        btn.classList.remove('bg-slate-700', 'hover:bg-indigo-600');
+                        btn.classList.add('bg-green-600/20', 'border-green-500/50', 'text-green-400');
+                        alert(data.message);
+                        
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            btn.classList.add('bg-slate-700', 'hover:bg-indigo-600');
+                            btn.classList.remove('bg-green-600/20', 'border-green-500/50', 'text-green-400');
+                        }, 5000);
+                    }
+                })
+                .catch(err => {
+                    alert('Error al forzar publicación');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+        }
+    </script>
+</body>
+</html>
